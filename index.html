@@ -3,25 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sustainability Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Welcome to My Tech Site</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #333333);
+            color: #f5f5f5;
+        }
+
+        header {
+            background-color: #212121;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #66fcf1;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .container p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            color: #ffffff;
+            background: #45a29e;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #66fcf1;
+        }
+
+        footer {
+            background-color: #212121;
+            padding: 1rem;
+            text-align: center;
+            color: #888;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard">
-        <button class="toggle-button" id="toggleButton">OFF</button>
+    <header>
+        <h1>Welcome to My Tech Platform</h1>
+    </header>
+
+    <div class="container">
+        <p>Discover cutting-edge solutions and innovative designs. Experience the future of technology with us.</p>
+        <a href="https://enthusiastic-long-tailed-skua-3609.flowfuse.cloud/ui/#!/0?socketid=jnS6CBLe1Z323tmNAAAB" class="btn" target="_blank">Visit Now</a>
     </div>
 
-    <script>
-        const button = document.getElementById('toggleButton');
-        button.addEventListener('click', () => {
-            if (button.textContent === "OFF") {
-                button.textContent = "ON";
-                button.classList.add('on');
-            } else {
-                button.textContent = "OFF";
-                button.classList.remove('on');
-            }
-        });
-    </script>
+    <footer>
+        <p>&copy; 2024 TechVision Inc. All Rights Reserved.</p>
+    </footer>
 </body>
 </html>
