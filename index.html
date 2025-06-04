@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Custom Username Chat (Local Only)</title>
+  <title>Firebase Chat Demo</title>
+  <meta name="viewport" content="width=400">
   <style>
     body { font-family: sans-serif; max-width: 400px; margin: 40px auto; }
     #messages { border: 1px solid #ccc; height: 230px; overflow-y: auto; margin-bottom: 12px; padding: 8px; }
@@ -12,11 +13,13 @@
     .other { color: blue; }
     #msg { width: 72%; font-size: 16px; }
     #sendBtn, #clearBtn { font-size: 16px; }
-    #header { margin-bottom: 12px; }
   </style>
+  <!-- Firebase JS SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h2 id="header">Custom Username Chat (Local Only)</h2>
+  <h2>Firebase Chat Demo</h2>
   <div id="login">
     <label>Enter your username:</label>
     <input type="text" id="usernameInput" placeholder="Any name" />
@@ -30,8 +33,21 @@
     <button id="clearBtn" onclick="clearChat()">Clear Chat</button>
   </div>
   <script>
+    // Your Firebase config (from your message)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAN1I2hHsOB3nkA_JOHbdBw0lvV1wuYSo0",
+      authDomain: "my-chat-demo-6dfb3.firebaseapp.com",
+      databaseURL: "https://my-chat-demo-6dfb3-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "my-chat-demo-6dfb3",
+      storageBucket: "my-chat-demo-6dfb3.firebasestorage.app",
+      messagingSenderId: "507245313126",
+      appId: "1:507245313126:web:138e765dabe43e5c7741a7"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     let username = "";
-    let chatLog = [];
+    const chatRef = db.ref("chatmessages");
 
     function login() {
       const uname = document.getElementById('usernameInput').value.trim();
@@ -43,7 +59,6 @@
       document.getElementById('login').style.display = 'none';
       document.getElementById('chat').style.display = 'block';
       document.getElementById('currentUser').textContent = username;
-      render();
       document.getElementById('msg').focus();
     }
 
@@ -51,30 +66,35 @@
       const msgInput = document.getElementById('msg');
       const msg = msgInput.value.trim();
       if (!msg) return;
-      chatLog.push({ sender: username, text: msg });
+      chatRef.push({
+        sender: username,
+        text: msg,
+        time: Date.now()
+      });
       msgInput.value = '';
-      render();
       msgInput.focus();
     }
 
     function clearChat() {
       if (confirm("Clear all messages?")) {
-        chatLog = [];
-        render();
+        chatRef.remove();
       }
     }
 
-    function render() {
+    // Real-time listener for messages
+    chatRef.limitToLast(50).on('value', snapshot => {
       const messagesDiv = document.getElementById('messages');
       messagesDiv.innerHTML = "";
-      chatLog.forEach(m => {
+      const data = snapshot.val();
+      if (!data) return;
+      Object.values(data).forEach(m => {
         let className = m.sender === username ? 'me' : 'other';
         messagesDiv.innerHTML += `<div class="msg ${className}">${m.sender}: ${m.text}</div>`;
       });
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
+    });
 
-    // Send message with Enter key
+    // Send with Enter key
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('msg').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') send();
