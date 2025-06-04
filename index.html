@@ -1,7 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Website (Multi-Product Cart)</title>
+  <title>Custom Username Chat (Local Only)</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 40px auto; }
+    #messages { border: 1px solid #ccc; height: 230px; overflow-y: auto; margin-bottom: 12px; padding: 8px; }
+    #chat { display: none; }
+    #login { margin-bottom: 20px; }
+    .msg { margin: 4px 0; }
+    .me { color: green; font-weight: bold; }
+    .other { color: blue; }
+    #msg { width: 72%; font-size: 16px; }
+    #sendBtn, #clearBtn { font-size: 16px; }
+    #header { margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h2 id="header">Custom Username Chat (Local Only)</h2>
+  <div id="login">
+    <label>Enter your username:</label>
+    <input type="text" id="usernameInput" placeholder="Any name" />
+    <button onclick="login()">Join Chat</button>
+  </div>
+  <div id="chat">
+    <div><b>Logged in as:</b> <span id="currentUser"></span></div>
+    <div id="messages"></div>
+    <input id="msg" type="text" placeholder="Type your message" autocomplete="off" />
+    <button id="sendBtn" onclick="send()">Send</button>
+    <button id="clearBtn" onclick="clearChat()">Clear Chat</button>
+  </div>
+  <script>
+    let username = "";
+    let chatLog = [];
+
+    function login() {
+      const uname = document.getElementById('usernameInput').value.trim();
+      if (!uname) {
+        alert("Please enter a username!");
+        return;
+      }
+      username = uname;
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('chat').style.display = 'block';
+      document.getElementById('currentUser').textContent = username;
+      render();
+      document.getElementById('msg').focus();
+    }
+
+    function send() {
+      const msgInput = document.getElementById('msg');
+      const msg = msgInput.value.trim();
+      if (!msg) return;
+      chatLog.push({ sender: username, text: msg });
+      msgInput.value = '';
+      render();
+      msgInput.focus();
+    }
+
+    function clearChat() {
+      if (confirm("Clear all messages?")) {
+        chatLog = [];
+        render();
+      }
+    }
+
+    function render() {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.innerHTML = "";
+      chatLog.forEach(m => {
+        let className = m.sender === username ? 'me' : 'other';
+        messagesDiv.innerHTML += `<div class="msg ${className}">${m.sender}: ${m.text}</div>`;
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Send message with Enter key
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('msg').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') send();
+      });
+    });
+  </script>
 </body>
 </html>
 
