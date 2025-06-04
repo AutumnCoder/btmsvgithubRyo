@@ -1,39 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Firebase Chat Demo</title>
+  <title>Firebase Chat — Unique Username Login</title>
   <meta name="viewport" content="width=400">
   <style>
     body { font-family: sans-serif; max-width: 400px; margin: 40px auto; }
-    #messages { border: 1px solid #ccc; height: 230px; overflow-y: auto; margin-bottom: 12px; padding: 8px; }
+    #messages { border: 1px solid #ccc; height: 230px; overflow-y: auto; margin-bottom: 8px; padding: 8px; }
     #chat { display: none; }
     #login { margin-bottom: 20px; }
     .msg { margin: 4px 0; }
     .me { color: green; font-weight: bold; }
     .other { color: blue; }
     #msg { width: 72%; font-size: 16px; }
-    #sendBtn, #clearBtn { font-size: 16px; }
+    #sendBtn, #clearBtn, #logoutBtn { font-size: 16px; }
+    #typingStatus { color: orange; margin-bottom: 7px; height: 18px;}
+    #loginError { color: red; margin-top: 5px;}
   </style>
-  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h2>Firebase Chat Demo</h2>
+  <h2>Firebase Chat (No Duplicated Usernames)</h2>
   <div id="login">
-    <label>Enter your username:</label>
-    <input type="text" id="usernameInput" placeholder="Any name" />
-    <button onclick="login()">Join Chat</button>
+    <label>Username:</label>
+    <input type="text" id="usernameInput" placeholder="Any name" /><br>
+    <label>Password:</label>
+    <input type="password" id="passwordInput" placeholder="Password" /><br>
+    <button onclick="login()">Login</button>
+    <div id="loginError"></div>
   </div>
   <div id="chat">
-    <div><b>Logged in as:</b> <span id="currentUser"></span></div>
+    <div>
+      <b>Logged in as:</b> <span id="currentUser"></span>
+      <button id="logoutBtn" onclick="logout()" style="float:right;">Logout</button>
+    </div>
     <div id="messages"></div>
+    <div id="typingStatus"></div>
     <input id="msg" type="text" placeholder="Type your message" autocomplete="off" />
     <button id="sendBtn" onclick="send()">Send</button>
     <button id="clearBtn" onclick="clearChat()">Clear Chat</button>
   </div>
   <script>
-    // Your Firebase config (from your message)
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAN1I2hHsOB3nkA_JOHbdBw0lvV1wuYSo0",
       authDomain: "my-chat-demo-6dfb3.firebaseapp.com",
@@ -43,25 +51,92 @@
       messagingSenderId: "507245313126",
       appId: "1:507245313126:web:138e765dabe43e5c7741a7"
     };
-    // Initialize Firebase
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let username = "";
+    let onlineRef = null;
     const chatRef = db.ref("chatmessages");
+    const typingRef = db.ref("typing");
+    const accountsRef = db.ref("accounts");
+    const onlineUsersRef = db.ref("online");
 
     function login() {
       const uname = document.getElementById('usernameInput').value.trim();
-      if (!uname) {
-        alert("Please enter a username!");
+      const pword = document.getElementById('passwordInput').value;
+      document.getElementById('loginError').textContent = "";
+
+      if (!uname || !pword) {
+        document.getElementById('loginError').textContent = "Enter username and password!";
         return;
       }
+      // Only accept password "2000"
+      if (pword !== "2000") {
+        document.getElementById('loginError').textContent = "Incorrect password.";
+        return;
+      }
+      // Check account in Firebase
+      accountsRef.child(uname).get().then(snapshot => {
+        if (!snapshot.exists()) {
+          // New account, create it with password "2000"
+          accountsRef.child(uname).set({ password: "2000" });
+          checkDuplicateLogin(uname);
+        } else {
+          // Existing account, check password
+          const acct = snapshot.val();
+          if (acct.password === "2000") {
+            checkDuplicateLogin(uname);
+          } else {
+            document.getElementById('loginError').textContent = "Incorrect password.";
+          }
+        }
+      }).catch(err => {
+        document.getElementById('loginError').textContent = "Login error, try again.";
+      });
+    }
+
+    function checkDuplicateLogin(uname) {
+      // Check if username is online
+      onlineUsersRef.child(uname).get().then(snapshot => {
+        if (snapshot.exists()) {
+          document.getElementById('loginError').textContent = "This username is already logged in elsewhere!";
+        } else {
+          // Not online, allow login
+          proceedLogin(uname);
+        }
+      });
+    }
+
+    function proceedLogin(uname) {
       username = uname;
+      // Save username to localStorage
+      localStorage.setItem('lastUsername', uname);
       document.getElementById('login').style.display = 'none';
       document.getElementById('chat').style.display = 'block';
       document.getElementById('currentUser').textContent = username;
       document.getElementById('msg').focus();
+      setTyping(false);
+      // Mark user as online in Firebase (auto remove on disconnect)
+      onlineRef = onlineUsersRef.child(username);
+      onlineRef.set(true);
+      onlineRef.onDisconnect().remove();
     }
 
+    function logout() {
+      setTyping(false);
+      if (onlineRef) onlineRef.remove();
+      username = "";
+      document.getElementById('chat').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('currentUser').textContent = '';
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('typingStatus').textContent = '';
+      document.getElementById('loginError').textContent = '';
+    }
+
+    // Send/Render Messages
     function send() {
       const msgInput = document.getElementById('msg');
       const msg = msgInput.value.trim();
@@ -71,6 +146,7 @@
         text: msg,
         time: Date.now()
       });
+      setTyping(false);
       msgInput.value = '';
       msgInput.focus();
     }
@@ -81,7 +157,34 @@
       }
     }
 
-    // Real-time listener for messages
+    // Typing logic
+    function setTyping(status) {
+      if (username) typingRef.child(username).set(status);
+    }
+
+    let typingTimeout;
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('msg').addEventListener('input', function() {
+        setTyping(true);
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => setTyping(false), 1000);
+      });
+      document.getElementById('msg').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') send();
+      });
+      // Pre-fill username if remembered
+      const lastUser = localStorage.getItem('lastUsername');
+      if (lastUser) document.getElementById('usernameInput').value = lastUser;
+    });
+
+    typingRef.on('value', snapshot => {
+      const data = snapshot.val() || {};
+      let othersTyping = Object.keys(data).filter(u => u !== username && data[u]);
+      const typingDiv = document.getElementById('typingStatus');
+      typingDiv.textContent = othersTyping.length ? `${othersTyping.join(", ")} typing...` : "";
+    });
+
+    // Realtime chat
     chatRef.limitToLast(50).on('value', snapshot => {
       const messagesDiv = document.getElementById('messages');
       messagesDiv.innerHTML = "";
@@ -94,11 +197,10 @@
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 
-    // Send with Enter key
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('msg').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') send();
-      });
+    // Clean up typing and online status on close
+    window.addEventListener('beforeunload', function() {
+      setTyping(false);
+      if (onlineRef) onlineRef.remove();
     });
   </script>
 </body>
