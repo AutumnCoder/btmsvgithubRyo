@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Facebook 2000s Chat Style</title>
-  <meta name="viewport" content="width=400">
+  <title>Facebook 2000s Chat – World & DMs + Online & Notif</title>
+  <meta name="viewport" content="width=430">
   <style>
     body {
       background: #e9ebee;
@@ -12,7 +12,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 32px #0002;
       overflow: hidden;
-      min-height: 540px;
+      min-height: 650px;
     }
     #fb-header {
       background: #4267B2;
@@ -40,7 +40,7 @@
       border-bottom-right-radius: 12px;
       box-shadow: 0 1px 6px #0001;
     }
-    #currentUser {
+    #currentUser, #currentGroup {
       color: #4267B2;
       font-weight: bold;
     }
@@ -48,7 +48,7 @@
       background: #f6f7fa;
       border: none;
       border-radius: 8px;
-      height: 270px;
+      height: 250px;
       overflow-y: auto;
       margin: 12px 16px 0 16px;
       padding: 12px 8px 10px 8px;
@@ -59,9 +59,7 @@
       align-items: flex-end;
       margin-bottom: 8px;
     }
-    .chat-row.me {
-      flex-direction: row-reverse;
-    }
+    .chat-row.me { flex-direction: row-reverse; }
     .chat-bubble {
       max-width: 70%;
       padding: 9px 14px;
@@ -72,15 +70,11 @@
       box-shadow: 0 1.5px 5px #0002;
     }
     .me .chat-bubble {
-      background: #4267B2;
-      color: #fff;
-      border-bottom-right-radius: 5px;
+      background: #4267B2; color: #fff; border-bottom-right-radius: 5px;
       align-self: flex-end;
     }
     .other .chat-bubble {
-      background: #f0f2f5;
-      color: #222;
-      border-bottom-left-radius: 5px;
+      background: #f0f2f5; color: #222; border-bottom-left-radius: 5px;
       align-self: flex-end;
     }
     .chat-avatar {
@@ -119,7 +113,7 @@
       background: #f5f6fa;
       margin-right: 2px;
     }
-    #sendBtn, #clearBtn, #logoutBtn, #imgBtn, #pdfBtn {
+    #sendBtn, #clearBtn, #logoutBtn, #imgBtn, #pdfBtn, #worldBtn {
       font-size: 14px;
       background: #4267B2;
       color: #fff;
@@ -130,7 +124,7 @@
       cursor: pointer;
       transition: background 0.15s;
     }
-    #sendBtn:hover, #clearBtn:hover, #logoutBtn:hover, #imgBtn:hover, #pdfBtn:hover {
+    #sendBtn:hover, #clearBtn:hover, #logoutBtn:hover, #imgBtn:hover, #pdfBtn:hover, #worldBtn:hover {
       background: #365899;
     }
     #typingStatus { color: #f8933c; margin: 7px 0 5px 18px; font-size: 13px; min-height: 18px;}
@@ -138,6 +132,54 @@
     #fileBtnRow { padding: 5px 16px 10px 16px; }
     .chat-img { max-width: 140px; max-height: 140px; display: block; border-radius: 9px; box-shadow: 0 1.5px 8px #0001; margin: 4px 0; }
     .chat-pdf { color: #ca2323; text-decoration: underline; font-size: 15px; }
+    #loginBtns {margin-top:14px;}
+    #loginBtns button { min-width: 100px; margin-right: 10px; font-weight: bold; font-size: 15px;}
+    #onlineListContainer {
+      margin:14px 0 10px 18px;
+      font-size:15px;
+      color:#222;
+      background: #f3f5fa;
+      padding: 7px 8px 7px 14px;
+      border-radius: 8px;
+      box-shadow: 0 1.5px 5px #0001;
+      width: 92%;
+    }
+    #onlineList {
+      font-size: 15px;
+      font-weight: 500;
+    }
+    #onlineList span {
+      cursor:pointer;
+      color:#1857c0;
+      padding:2px 8px 2px 8px;
+      border-radius:6px;
+      margin-right:2px;
+      margin-bottom:2px;
+      display:inline-block;
+      position:relative;
+      transition: background 0.12s;
+    }
+    #onlineList span:hover {background:#e0e7fd;}
+    .notif-badge {
+      position: absolute;
+      top: -5px; right: -3px;
+      background: #e02828;
+      color: #fff;
+      font-size: 11px;
+      border-radius: 50%;
+      min-width: 16px;
+      min-height: 16px;
+      padding: 0 4px;
+      text-align: center;
+      line-height: 16px;
+      font-weight: bold;
+      box-shadow: 0 1px 4px #0003;
+      pointer-events: none;
+      display: inline-block;
+    }
+    #chatSwitch {margin: 7px 0 2px 18px;}
+    #chatSwitch button {background:#fff;color:#4267B2;border:1px solid #4267B2;font-weight:bold;border-radius:8px;padding:2px 12px;margin-right:8px;cursor:pointer;}
+    #chatSwitch button.active, #chatSwitch button:hover {background:#4267B2;color:#fff;}
     ::-webkit-scrollbar { width: 7px; background: #f0f2f5; }
     ::-webkit-scrollbar-thumb { background: #ccd0d5; border-radius: 4px; }
   </style>
@@ -146,20 +188,29 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <div id="fb-header">Facebook Chatroom</div>
+  <div id="fb-header">Facebook Chatroom (World & DMs)</div>
   <div id="login">
     <label style="font-size:15px;">Username:</label>
     <input type="text" id="usernameInput" placeholder="Any name" /><br>
     <label style="font-size:15px;">Password:</label>
     <input type="password" id="passwordInput" placeholder="Password" /><br>
-    <button onclick="login()">Login</button>
+    <div id="loginBtns">
+      <button onclick="login(false)">Login</button>
+      <button onclick="login(true)">Sign Up</button>
+    </div>
     <div id="loginError"></div>
   </div>
   <div id="chat" style="display:none;">
     <div style="padding:10px 16px 0 16px;font-size:16px;">
       <b>Logged in as:</b> <span id="currentUser"></span>
+      <span id="currentGroup" style="margin-left:12px;"></span>
       <button id="logoutBtn" onclick="logout()" style="float:right;">Logout</button>
     </div>
+    <div id="onlineListContainer">
+      <div style="margin-bottom: 5px; color: #4267B2;"><b>Who is online? (click name to DM)</b></div>
+      <div id="onlineList"></div>
+    </div>
+    <div id="chatSwitch"></div>
     <div id="messages"></div>
     <div id="typingStatus"></div>
     <div id="fileBtnRow">
@@ -168,6 +219,7 @@
       <input type="file" id="pdfInput" style="display:none" accept="application/pdf">
       <button id="pdfBtn" onclick="document.getElementById('pdfInput').click()">📄 PDF</button>
       <button id="clearBtn" onclick="clearChat()">Clear Chat</button>
+      <button id="worldBtn" onclick="switchToWorld()" style="display:none;">🌍 World Chat</button>
     </div>
     <form id="msg-area" onsubmit="send();return false;">
       <input id="msg" type="text" placeholder="Type your message" autocomplete="off" />
@@ -190,11 +242,16 @@
     const storage = firebase.storage();
     let username = "";
     let onlineRef = null;
-    const chatRef = db.ref("chatmessages");
-    const typingRef = db.ref("typing");
+    const chatRefRoot = db.ref("chatmessages");
+    const typingRefRoot = db.ref("typing");
     const accountsRef = db.ref("accounts");
     const onlineUsersRef = db.ref("online");
-    let chatListener = null;
+    let chatListener = null, typingListener = null, onlineListener = null;
+
+    let inDM = false;
+    let dmTarget = null;
+    let dmNotifCounts = {};
+    let dmLastSeen = {};
 
     function getInitials(name) {
       return name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase();
@@ -204,7 +261,22 @@
       return d.getHours().toString().padStart(2,0) + ':' + d.getMinutes().toString().padStart(2,0);
     }
 
-    function login() {
+    function chatRef() {
+      if (inDM && dmTarget) {
+        const [a, b] = [username, dmTarget].sort();
+        return db.ref(`dm/${a}--${b}`);
+      }
+      return chatRefRoot.child("world");
+    }
+    function typingRef() {
+      if (inDM && dmTarget) {
+        const [a, b] = [username, dmTarget].sort();
+        return typingRefRoot.child(`dm/${a}--${b}`);
+      }
+      return typingRefRoot.child("world");
+    }
+
+    function login(isSignup) {
       const uname = document.getElementById('usernameInput').value.trim();
       const pword = document.getElementById('passwordInput').value;
       document.getElementById('loginError').textContent = "";
@@ -212,17 +284,23 @@
         document.getElementById('loginError').textContent = "Enter username and password!";
         return;
       }
-      if (pword !== "2000") {
-        document.getElementById('loginError').textContent = "Incorrect password.";
-        return;
-      }
       accountsRef.child(uname).get().then(snapshot => {
-        if (!snapshot.exists()) {
-          accountsRef.child(uname).set({ password: "2000" });
-          checkDuplicateLogin(uname);
+        if (isSignup) {
+          if (snapshot.exists()) {
+            document.getElementById('loginError').textContent = "Username already exists. Please choose another.";
+            return;
+          } else {
+            accountsRef.child(uname).set({ password: pword }).then(() => {
+              proceedLogin(uname);
+            });
+          }
         } else {
+          if (!snapshot.exists()) {
+            document.getElementById('loginError').textContent = "User not found. Please sign up!";
+            return;
+          }
           const acct = snapshot.val();
-          if (acct.password === "2000") {
+          if (acct.password === pword) {
             checkDuplicateLogin(uname);
           } else {
             document.getElementById('loginError').textContent = "Incorrect password.";
@@ -247,14 +325,32 @@
       username = uname;
       localStorage.setItem('lastUsername', uname);
       document.getElementById('login').style.display = 'none';
-      document.getElementById('chat').style.display = 'block';
+      document.getElementById('chat').style.display = '';
       document.getElementById('currentUser').textContent = username;
       document.getElementById('msg').focus();
-      setTyping(false);
+      inDM = false;
+      dmTarget = null;
+      dmNotifCounts = {};
+      dmLastSeen = {};
       onlineRef = onlineUsersRef.child(username);
       onlineRef.set(true);
       onlineRef.onDisconnect().remove();
-      chatListener = chatRef.limitToLast(50).on('value', snapshot => {
+      showChatUI();
+      listenOnlineUsers();
+      setupAllDMNotifs();
+    }
+
+    function showChatUI() {
+      document.getElementById('currentGroup').textContent =
+        inDM && dmTarget ? `🧑‍💻 DM with ${dmTarget}` : "🌍 World Chat";
+      document.getElementById('worldBtn').style.display = inDM ? '' : 'none';
+      document.getElementById('chatSwitch').innerHTML =
+        `<button onclick="switchToWorld()" ${(!inDM)?"class='active'":""}>World Chat</button>` +
+        (inDM && dmTarget ? `<button class="active">DM: ${dmTarget}</button>
+        <button onclick="exitDM()" style="background:#f44336;">Exit DM</button>` : "");
+      if (chatListener) chatRef().off('value', chatListener);
+      if (typingListener) typingRef().off('value', typingListener);
+      chatListener = chatRef().limitToLast(50).on('value', snapshot => {
         const messagesDiv = document.getElementById('messages');
         messagesDiv.innerHTML = "";
         const data = snapshot.val();
@@ -285,17 +381,45 @@
           `;
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        // On open DM, reset DM notification badge
+        if (inDM && dmTarget) {
+          dmNotifCounts[dmTarget] = 0;
+          dmLastSeen[dmTarget] = Date.now();
+          updateOnlineList();
+        }
       });
+      typingListener = typingRef().on('value', snapshot => {
+        const data = snapshot.val() || {};
+        let othersTyping = Object.keys(data).filter(u => u !== username && data[u]);
+        const typingDiv = document.getElementById('typingStatus');
+        typingDiv.textContent = othersTyping.length ? `${othersTyping.join(", ")} typing...` : "";
+      });
+    }
+
+    function switchToWorld() {
+      inDM = false; dmTarget = null;
+      showChatUI();
+    }
+    function startDM(target) {
+      if (target === username) return;
+      inDM = true;
+      dmTarget = target;
+      showChatUI();
+      dmNotifCounts[dmTarget] = 0;
+      dmLastSeen[dmTarget] = Date.now();
+      updateOnlineList();
+    }
+    function exitDM() {
+      inDM = false; dmTarget = null;
+      showChatUI();
     }
 
     function logout() {
       setTyping(false);
       if (onlineRef) onlineRef.remove();
-      if (chatListener) {
-        chatRef.off('value', chatListener);
-        chatListener = null;
-      }
-      username = "";
+      if (chatListener) chatRef().off('value', chatListener);
+      if (typingListener) typingRef().off('value', typingListener);
+      username = ""; inDM = false; dmTarget = null;
       document.getElementById('chat').style.display = 'none';
       document.getElementById('login').style.display = 'block';
       document.getElementById('usernameInput').value = '';
@@ -304,6 +428,8 @@
       document.getElementById('messages').innerHTML = '';
       document.getElementById('typingStatus').textContent = '';
       document.getElementById('loginError').textContent = '';
+      document.getElementById('onlineList').innerHTML = '';
+      document.getElementById('chatSwitch').innerHTML = '';
     }
 
     function send() {
@@ -311,7 +437,7 @@
       const msg = msgInput.value.trim();
       if (!msg) return;
       function pushMsg(senderName, text, locObj, type, fileUrl, fileName) {
-        chatRef.push({
+        chatRef().push({
           sender: senderName,
           text: text,
           location: locObj,
@@ -352,7 +478,7 @@
       const fname = Date.now() + "_" + file.name.replace(/[^\w.]/g, '');
       const imgRef = storage.ref('chatfiles/' + fname);
       imgRef.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
-        chatRef.push({
+        chatRef().push({
           sender: username,
           text: "",
           type: "image",
@@ -375,7 +501,7 @@
       const fname = Date.now() + "_" + file.name.replace(/[^\w.]/g, '');
       const pdfRef = storage.ref('chatfiles/' + fname);
       pdfRef.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
-        chatRef.push({
+        chatRef().push({
           sender: username,
           text: "",
           type: "pdf",
@@ -388,13 +514,13 @@
     });
 
     function clearChat() {
-      if (confirm("Clear all messages?")) {
-        chatRef.remove();
+      if (confirm("Clear all messages in this chat?")) {
+        chatRef().remove();
       }
     }
 
     function setTyping(status) {
-      if (username) typingRef.child(username).set(status);
+      if (username) typingRef().child(username).set(status);
     }
 
     let typingTimeout;
@@ -411,20 +537,100 @@
       if (lastUser) document.getElementById('usernameInput').value = lastUser;
     });
 
-    typingRef.on('value', snapshot => {
-      const data = snapshot.val() || {};
-      let othersTyping = Object.keys(data).filter(u => u !== username && data[u]);
-      const typingDiv = document.getElementById('typingStatus');
-      typingDiv.textContent = othersTyping.length ? `${othersTyping.join(", ")} typing...` : "";
-    });
+    // --- Online Users & DM Notif logic ---
+    function listenOnlineUsers() {
+      onlineUsersRef.on('value', snapshot => {
+        const data = snapshot.val() || {};
+        let html = '';
+        Object.keys(data).forEach(u => {
+          if (u === username) {
+            html += `<span style="font-weight:bold; background:#d8eafd;">${u}</span> `;
+          } else {
+            let badge = "";
+            if (dmNotifCounts[u] && dmNotifCounts[u] > 0) {
+              badge = `<span class="notif-badge">${dmNotifCounts[u]}</span>`;
+            }
+            html += `<span onclick="startDM('${u}')" style="position:relative;">${u}${badge}</span> `;
+          }
+        });
+        document.getElementById('onlineList').innerHTML = html;
+      });
+    }
+
+    // --- DM Notification Logic ---
+    function setupAllDMNotifs() {
+      // Remove old listeners if needed
+      Object.keys(dmNotifCounts).forEach(target => {
+        if (dmNotifCounts[target] && dmNotifCounts[target]._ref)
+          dmNotifCounts[target]._ref.off('value', dmNotifCounts[target]._listener);
+      });
+      dmNotifCounts = {};
+      dmLastSeen = {};
+      onlineUsersRef.on('value', snapshot => {
+        const users = snapshot.val() || {};
+        Object.keys(users).forEach(u => {
+          if (u !== username) listenDMNotif(u);
+        });
+        updateOnlineList();
+      });
+    }
+
+    function listenDMNotif(target) {
+      if (dmNotifCounts[target] && dmNotifCounts[target]._ref) return;
+      const [a, b] = [username, target].sort();
+      const dmRef = db.ref(`dm/${a}--${b}`);
+      const handler = dmRef.limitToLast(1).on('value', snapshot => {
+        const val = snapshot.val();
+        if (!val) return;
+        const msgs = Object.values(val);
+        const latest = msgs[msgs.length - 1];
+        if (!latest) return;
+        if (latest.sender === target) {
+          if (!inDM || dmTarget !== target) {
+            if (!dmNotifCounts[target]) dmNotifCounts[target] = 0;
+            dmNotifCounts[target]++;
+            updateOnlineList();
+          } else {
+            dmNotifCounts[target] = 0;
+            dmLastSeen[target] = Date.now();
+            updateOnlineList();
+          }
+        }
+      });
+      if (!dmNotifCounts[target]) dmNotifCounts[target] = 0;
+      dmNotifCounts[target]._ref = dmRef;
+      dmNotifCounts[target]._listener = handler;
+    }
+
+    function updateOnlineList() {
+      onlineUsersRef.once('value').then(snapshot => {
+        const data = snapshot.val() || {};
+        let html = '';
+        Object.keys(data).forEach(u => {
+          if (u === username) {
+            html += `<span style="font-weight:bold; background:#d8eafd;">${u}</span> `;
+          } else {
+            let badge = "";
+            if (dmNotifCounts[u] && dmNotifCounts[u] > 0) {
+              badge = `<span class="notif-badge">${dmNotifCounts[u]}</span>`;
+            }
+            html += `<span onclick="startDM('${u}')" style="position:relative;">${u}${badge}</span> `;
+          }
+        });
+        document.getElementById('onlineList').innerHTML = html;
+      });
+    }
+
+    window.switchToWorld = switchToWorld;
+    window.startDM = startDM;
+    window.exitDM = exitDM;
 
     window.addEventListener('beforeunload', function() {
       setTyping(false);
       if (onlineRef) onlineRef.remove();
-      if (chatListener) {
-        chatRef.off('value', chatListener);
-        chatListener = null;
-      }
+      if (chatListener) chatRef().off('value', chatListener);
+      if (typingListener) typingRef().off('value', typingListener);
+      if (onlineListener) onlineUsersRef.off('value', onlineListener);
     });
   </script>
 </body>
