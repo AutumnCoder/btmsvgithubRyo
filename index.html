@@ -1,88 +1,226 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Firebase Chat — Unique Username Login</title>
+  <title>Facebook 2000s Chat Style</title>
   <meta name="viewport" content="width=400">
   <style>
-    body { font-family: sans-serif; max-width: 400px; margin: 40px auto; }
-    #messages { border: 1px solid #ccc; height: 230px; overflow-y: auto; margin-bottom: 8px; padding: 8px; }
-    #chat { display: none; }
-    #login { margin-bottom: 20px; }
-    .msg { margin: 4px 0; }
-    .me { color: green; font-weight: bold; }
-    .other { color: blue; }
-    #msg { width: 72%; font-size: 16px; }
-    #sendBtn, #clearBtn, #logoutBtn { font-size: 16px; }
-    #typingStatus { color: orange; margin-bottom: 7px; height: 18px;}
-    #loginError { color: red; margin-top: 5px;}
+    body {
+      background: #e9ebee;
+      font-family: "Segoe UI", Arial, sans-serif;
+      max-width: 430px;
+      margin: 40px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 32px #0002;
+      overflow: hidden;
+      min-height: 540px;
+    }
+    #fb-header {
+      background: #4267B2;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+      padding: 20px 20px 16px 20px;
+      letter-spacing: 1px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      box-shadow: 0 3px 9px #0001;
+    }
+    #login {
+      background: #fff;
+      padding: 24px;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      box-shadow: 0 1px 6px #0001;
+      margin-bottom: 20px;
+    }
+    #chat {
+      background: #fff;
+      padding: 0 0 12px 0;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      box-shadow: 0 1px 6px #0001;
+    }
+    #currentUser {
+      color: #4267B2;
+      font-weight: bold;
+    }
+    #messages {
+      background: #f6f7fa;
+      border: none;
+      border-radius: 8px;
+      height: 270px;
+      overflow-y: auto;
+      margin: 12px 16px 0 16px;
+      padding: 12px 8px 10px 8px;
+      box-shadow: 0 0.5px 2px #0001;
+    }
+    .chat-row {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 8px;
+    }
+    .chat-row.me {
+      flex-direction: row-reverse;
+    }
+    .chat-bubble {
+      max-width: 70%;
+      padding: 9px 14px;
+      border-radius: 18px;
+      margin: 0 8px;
+      position: relative;
+      font-size: 16px;
+      box-shadow: 0 1.5px 5px #0002;
+    }
+    .me .chat-bubble {
+      background: #4267B2;
+      color: #fff;
+      border-bottom-right-radius: 5px;
+      align-self: flex-end;
+    }
+    .other .chat-bubble {
+      background: #f0f2f5;
+      color: #222;
+      border-bottom-left-radius: 5px;
+      align-self: flex-end;
+    }
+    .chat-avatar {
+      width: 34px; height: 34px;
+      background: #e3eaf6;
+      border-radius: 50%;
+      font-size: 15px;
+      color: #4267B2;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 2px;
+      box-shadow: 0 1px 2px #0001;
+      user-select: none;
+    }
+    .chat-time {
+      font-size: 11px;
+      color: #888;
+      margin: 2px 0 0 6px;
+      vertical-align: middle;
+    }
+    #msg-area {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px 0 15px;
+    }
+    #msg {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 16px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      outline: none;
+      background: #f5f6fa;
+      margin-right: 2px;
+    }
+    #sendBtn, #clearBtn, #logoutBtn, #imgBtn, #pdfBtn {
+      font-size: 14px;
+      background: #4267B2;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 6px 14px;
+      margin-left: 3px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #sendBtn:hover, #clearBtn:hover, #logoutBtn:hover, #imgBtn:hover, #pdfBtn:hover {
+      background: #365899;
+    }
+    #typingStatus { color: #f8933c; margin: 7px 0 5px 18px; font-size: 13px; min-height: 18px;}
+    #loginError { color: #d32f2f; margin-top: 7px;}
+    #fileBtnRow { padding: 5px 16px 10px 16px; }
+    .chat-img { max-width: 140px; max-height: 140px; display: block; border-radius: 9px; box-shadow: 0 1.5px 8px #0001; margin: 4px 0; }
+    .chat-pdf { color: #ca2323; text-decoration: underline; font-size: 15px; }
+    ::-webkit-scrollbar { width: 7px; background: #f0f2f5; }
+    ::-webkit-scrollbar-thumb { background: #ccd0d5; border-radius: 4px; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <h2>Firebase Chat (No Duplicated Usernames)</h2>
+  <div id="fb-header">Facebook Chatroom</div>
   <div id="login">
-    <label>Username:</label>
+    <label style="font-size:15px;">Username:</label>
     <input type="text" id="usernameInput" placeholder="Any name" /><br>
-    <label>Password:</label>
+    <label style="font-size:15px;">Password:</label>
     <input type="password" id="passwordInput" placeholder="Password" /><br>
     <button onclick="login()">Login</button>
     <div id="loginError"></div>
   </div>
-  <div id="chat">
-    <div>
+  <div id="chat" style="display:none;">
+    <div style="padding:10px 16px 0 16px;font-size:16px;">
       <b>Logged in as:</b> <span id="currentUser"></span>
       <button id="logoutBtn" onclick="logout()" style="float:right;">Logout</button>
     </div>
     <div id="messages"></div>
     <div id="typingStatus"></div>
-    <input id="msg" type="text" placeholder="Type your message" autocomplete="off" />
-    <button id="sendBtn" onclick="send()">Send</button>
-    <button id="clearBtn" onclick="clearChat()">Clear Chat</button>
+    <div id="fileBtnRow">
+      <input type="file" id="imgInput" style="display:none" accept="image/*">
+      <button id="imgBtn" onclick="document.getElementById('imgInput').click()">📷 Image</button>
+      <input type="file" id="pdfInput" style="display:none" accept="application/pdf">
+      <button id="pdfBtn" onclick="document.getElementById('pdfInput').click()">📄 PDF</button>
+      <button id="clearBtn" onclick="clearChat()">Clear Chat</button>
+    </div>
+    <form id="msg-area" onsubmit="send();return false;">
+      <input id="msg" type="text" placeholder="Type your message" autocomplete="off" />
+      <button id="sendBtn" type="submit">Send</button>
+    </form>
   </div>
   <script>
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAN1I2hHsOB3nkA_JOHbdBw0lvV1wuYSo0",
       authDomain: "my-chat-demo-6dfb3.firebaseapp.com",
       databaseURL: "https://my-chat-demo-6dfb3-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "my-chat-demo-6dfb3",
-      storageBucket: "my-chat-demo-6dfb3.firebasestorage.app",
+      storageBucket: "my-chat-demo-6dfb3.appspot.com",
       messagingSenderId: "507245313126",
       appId: "1:507245313126:web:138e765dabe43e5c7741a7"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const storage = firebase.storage();
     let username = "";
     let onlineRef = null;
     const chatRef = db.ref("chatmessages");
     const typingRef = db.ref("typing");
     const accountsRef = db.ref("accounts");
     const onlineUsersRef = db.ref("online");
+    let chatListener = null;
+
+    function getInitials(name) {
+      return name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase();
+    }
+    function formatTime(ms) {
+      const d = new Date(ms);
+      return d.getHours().toString().padStart(2,0) + ':' + d.getMinutes().toString().padStart(2,0);
+    }
 
     function login() {
       const uname = document.getElementById('usernameInput').value.trim();
       const pword = document.getElementById('passwordInput').value;
       document.getElementById('loginError').textContent = "";
-
       if (!uname || !pword) {
         document.getElementById('loginError').textContent = "Enter username and password!";
         return;
       }
-      // Only accept password "2000"
       if (pword !== "2000") {
         document.getElementById('loginError').textContent = "Incorrect password.";
         return;
       }
-      // Check account in Firebase
       accountsRef.child(uname).get().then(snapshot => {
         if (!snapshot.exists()) {
-          // New account, create it with password "2000"
           accountsRef.child(uname).set({ password: "2000" });
           checkDuplicateLogin(uname);
         } else {
-          // Existing account, check password
           const acct = snapshot.val();
           if (acct.password === "2000") {
             checkDuplicateLogin(uname);
@@ -96,12 +234,10 @@
     }
 
     function checkDuplicateLogin(uname) {
-      // Check if username is online
       onlineUsersRef.child(uname).get().then(snapshot => {
         if (snapshot.exists()) {
           document.getElementById('loginError').textContent = "This username is already logged in elsewhere!";
         } else {
-          // Not online, allow login
           proceedLogin(uname);
         }
       });
@@ -109,22 +245,56 @@
 
     function proceedLogin(uname) {
       username = uname;
-      // Save username to localStorage
       localStorage.setItem('lastUsername', uname);
       document.getElementById('login').style.display = 'none';
       document.getElementById('chat').style.display = 'block';
       document.getElementById('currentUser').textContent = username;
       document.getElementById('msg').focus();
       setTyping(false);
-      // Mark user as online in Firebase (auto remove on disconnect)
       onlineRef = onlineUsersRef.child(username);
       onlineRef.set(true);
       onlineRef.onDisconnect().remove();
+      chatListener = chatRef.limitToLast(50).on('value', snapshot => {
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML = "";
+        const data = snapshot.val();
+        if (!data) return;
+        Object.values(data).forEach(m => {
+          let className = m.sender === username ? 'me' : 'other';
+          let initials = m.sender === username ? getInitials(username) : getInitials(m.sender);
+          let bubble = "";
+          if (m.type === "image" && m.fileUrl) {
+            bubble = `<img class="chat-img" src="${m.fileUrl}" alt="image" />`;
+          }
+          else if (m.type === "pdf" && m.fileUrl) {
+            bubble = `<a class="chat-pdf" href="${m.fileUrl}" target="_blank">📄 ${m.fileName || 'PDF file'}</a>`;
+          }
+          else if (m.sender === "LocationBot" && m.location && m.location.lat && m.location.lng) {
+            let loc = ` <span style="color:#999;">(📍${m.location.lat}, ${m.location.lng})</span>`;
+            bubble = m.text + loc;
+          }
+          else {
+            bubble = m.text;
+          }
+          let time = m.time ? `<span class="chat-time">${formatTime(m.time)}</span>` : "";
+          messagesDiv.innerHTML += `
+            <div class="chat-row ${className}">
+              <div class="chat-avatar">${initials}</div>
+              <div class="chat-bubble">${bubble} ${time}</div>
+            </div>
+          `;
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
     }
 
     function logout() {
       setTyping(false);
       if (onlineRef) onlineRef.remove();
+      if (chatListener) {
+        chatRef.off('value', chatListener);
+        chatListener = null;
+      }
       username = "";
       document.getElementById('chat').style.display = 'none';
       document.getElementById('login').style.display = 'block';
@@ -136,20 +306,86 @@
       document.getElementById('loginError').textContent = '';
     }
 
-    // Send/Render Messages
     function send() {
       const msgInput = document.getElementById('msg');
       const msg = msgInput.value.trim();
       if (!msg) return;
-      chatRef.push({
-        sender: username,
-        text: msg,
-        time: Date.now()
-      });
+      function pushMsg(senderName, text, locObj, type, fileUrl, fileName) {
+        chatRef.push({
+          sender: senderName,
+          text: text,
+          location: locObj,
+          time: Date.now(),
+          type: type || "text",
+          fileUrl: fileUrl || null,
+          fileName: fileName || null
+        });
+      }
+      if (msg.toLowerCase() === '@location' || msg.toLowerCase() === '@location?') {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude.toFixed(5);
+            const lng = position.coords.longitude.toFixed(5);
+            pushMsg("LocationBot", `User "${username}" is at:`, { lat, lng });
+          }, function(error) {
+            pushMsg("LocationBot", `User "${username}": (Could not get location)`, null);
+          });
+        } else {
+          pushMsg("LocationBot", `User "${username}": (Geolocation not supported)`, null);
+        }
+      } else {
+        pushMsg(username, msg, null);
+      }
       setTyping(false);
       msgInput.value = '';
       msgInput.focus();
     }
+
+    document.getElementById('imgInput').addEventListener('change', function(e) {
+      if (!username) return;
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Only images are allowed!');
+        return;
+      }
+      const fname = Date.now() + "_" + file.name.replace(/[^\w.]/g, '');
+      const imgRef = storage.ref('chatfiles/' + fname);
+      imgRef.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
+        chatRef.push({
+          sender: username,
+          text: "",
+          type: "image",
+          fileUrl: url,
+          fileName: file.name,
+          time: Date.now()
+        });
+      }).catch(() => alert('Failed to upload image!'));
+      e.target.value = '';
+    });
+
+    document.getElementById('pdfInput').addEventListener('change', function(e) {
+      if (!username) return;
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.type !== 'application/pdf') {
+        alert('Only PDF files are allowed!');
+        return;
+      }
+      const fname = Date.now() + "_" + file.name.replace(/[^\w.]/g, '');
+      const pdfRef = storage.ref('chatfiles/' + fname);
+      pdfRef.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
+        chatRef.push({
+          sender: username,
+          text: "",
+          type: "pdf",
+          fileUrl: url,
+          fileName: file.name,
+          time: Date.now()
+        });
+      }).catch(() => alert('Failed to upload PDF!'));
+      e.target.value = '';
+    });
 
     function clearChat() {
       if (confirm("Clear all messages?")) {
@@ -157,7 +393,6 @@
       }
     }
 
-    // Typing logic
     function setTyping(status) {
       if (username) typingRef.child(username).set(status);
     }
@@ -172,7 +407,6 @@
       document.getElementById('msg').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') send();
       });
-      // Pre-fill username if remembered
       const lastUser = localStorage.getItem('lastUsername');
       if (lastUser) document.getElementById('usernameInput').value = lastUser;
     });
@@ -184,23 +418,13 @@
       typingDiv.textContent = othersTyping.length ? `${othersTyping.join(", ")} typing...` : "";
     });
 
-    // Realtime chat
-    chatRef.limitToLast(50).on('value', snapshot => {
-      const messagesDiv = document.getElementById('messages');
-      messagesDiv.innerHTML = "";
-      const data = snapshot.val();
-      if (!data) return;
-      Object.values(data).forEach(m => {
-        let className = m.sender === username ? 'me' : 'other';
-        messagesDiv.innerHTML += `<div class="msg ${className}">${m.sender}: ${m.text}</div>`;
-      });
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    });
-
-    // Clean up typing and online status on close
     window.addEventListener('beforeunload', function() {
       setTyping(false);
       if (onlineRef) onlineRef.remove();
+      if (chatListener) {
+        chatRef.off('value', chatListener);
+        chatListener = null;
+      }
     });
   </script>
 </body>
